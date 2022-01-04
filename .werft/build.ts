@@ -348,41 +348,41 @@ export async function build(context, version) {
         issueMetaCerts(PROXY_SECRET_NAME, "default", domain, withVM)
     }
 
-    werft.phase(phases.PREDEPLOY, "Checking for existing installations...");
-    // the context namespace is not set at this point
-    const hasGitpodHelmInstall = exec(`helm status ${helmInstallName} -n ${deploymentConfig.namespace}`, {slice: "check for Helm install", dontCheckRc: true}).code === 0;
-    const hasGitpodInstallerInstall = exec(`kubectl get configmap gitpod-app -n ${deploymentConfig.namespace}`, {slice: "check for Installer install", dontCheckRc: true}).code === 0;
-    werft.log("result of installation checks", `has Helm install: ${hasGitpodHelmInstall}, has Installer install: ${hasGitpodInstallerInstall}`);
+    // werft.phase(phases.PREDEPLOY, "Checking for existing installations...");
+    // // the context namespace is not set at this point
+    // const hasGitpodHelmInstall = exec(`helm status ${helmInstallName} -n ${deploymentConfig.namespace}`, {slice: "check for Helm install", dontCheckRc: true}).code === 0;
+    // const hasGitpodInstallerInstall = exec(`kubectl get configmap gitpod-app -n ${deploymentConfig.namespace}`, {slice: "check for Installer install", dontCheckRc: true}).code === 0;
+    // werft.log("result of installation checks", `has Helm install: ${hasGitpodHelmInstall}, has Installer install: ${hasGitpodInstallerInstall}`);
 
-    if (withHelm) {
-        werft.log("using Helm", "with-helm was specified.");
-        // you want helm, but left behind a Gitpod Installer installation, force a clean slate
-        if (hasGitpodInstallerInstall && !deploymentConfig.cleanSlateDeployment) {
-            werft.log("warning!", "with-helm was specified, there's an Installer install, but, `with-clean-slate-deployment=false`, forcing to true.");
-            deploymentConfig.cleanSlateDeployment = true;
-        }
-        werft.done(phases.PREDEPLOY);
-        werft.phase(phases.DEPLOY, "deploying")
-        await deployToDevWithHelm(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
-    } // scenario: you pushed code to an existing preview environment built with Helm, and didn't with-clean-slate-deployment=true'
-    else if (hasGitpodHelmInstall && !deploymentConfig.cleanSlateDeployment) {
-        werft.log("using Helm", "with-helm was not specified, but, a Helm installation exists, and this is not a clean slate deployment.");
-        werft.log("tip", "Set 'with-clean-slate-deployment=true' if you wish to remove the Helm install and use the Installer.");
-        werft.done(phases.PREDEPLOY);
-        werft.phase(phases.DEPLOY, "deploying to dev with Helm");
-        await deployToDevWithHelm(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
-    } else {
-        // you get here if
-        // ...it's a new install with no flag overrides or
-        // ...it's an existing install and a Helm install doesn't exist or
-        // ...you have a prexisting Helm install, set 'with-clean-slate-deployment=true', but did not specifiy 'with-helm=true'
-        // Why? The installer is supposed to be a default so we all dog-food it.
-        // But, its new, so this may help folks transition with less issues.
-        werft.done(phases.PREDEPLOY);
-        werft.phase(phases.DEPLOY, "deploying to dev with Installer");
-        await deployToDevWithInstaller(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
-    }
-    await triggerIntegrationTests(deploymentConfig.version, deploymentConfig.namespace, context.Owner, !withIntegrationTests)
+    // if (withHelm) {
+    //     werft.log("using Helm", "with-helm was specified.");
+    //     // you want helm, but left behind a Gitpod Installer installation, force a clean slate
+    //     if (hasGitpodInstallerInstall && !deploymentConfig.cleanSlateDeployment) {
+    //         werft.log("warning!", "with-helm was specified, there's an Installer install, but, `with-clean-slate-deployment=false`, forcing to true.");
+    //         deploymentConfig.cleanSlateDeployment = true;
+    //     }
+    //     werft.done(phases.PREDEPLOY);
+    //     werft.phase(phases.DEPLOY, "deploying")
+    //     await deployToDevWithHelm(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
+    // } // scenario: you pushed code to an existing preview environment built with Helm, and didn't with-clean-slate-deployment=true'
+    // else if (hasGitpodHelmInstall && !deploymentConfig.cleanSlateDeployment) {
+    //     werft.log("using Helm", "with-helm was not specified, but, a Helm installation exists, and this is not a clean slate deployment.");
+    //     werft.log("tip", "Set 'with-clean-slate-deployment=true' if you wish to remove the Helm install and use the Installer.");
+    //     werft.done(phases.PREDEPLOY);
+    //     werft.phase(phases.DEPLOY, "deploying to dev with Helm");
+    //     await deployToDevWithHelm(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
+    // } else {
+    //     // you get here if
+    //     // ...it's a new install with no flag overrides or
+    //     // ...it's an existing install and a Helm install doesn't exist or
+    //     // ...you have a prexisting Helm install, set 'with-clean-slate-deployment=true', but did not specifiy 'with-helm=true'
+    //     // Why? The installer is supposed to be a default so we all dog-food it.
+    //     // But, its new, so this may help folks transition with less issues.
+    //     werft.done(phases.PREDEPLOY);
+    //     werft.phase(phases.DEPLOY, "deploying to dev with Installer");
+    //     await deployToDevWithInstaller(deploymentConfig, workspaceFeatureFlags, dynamicCPULimits, storage);
+    // }
+    // await triggerIntegrationTests(deploymentConfig.version, deploymentConfig.namespace, context.Owner, !withIntegrationTests)
 }
 
 interface DeploymentConfig {
