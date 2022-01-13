@@ -36,4 +36,7 @@ export interface Configuration {
         stoppingPhaseSeconds: number;
         unknownPhaseSeconds: number;
     }
+
+    // preparingEmulatorIntervalSeconds configures how often we check for Workspaces in phase "preparing" for clusters we do not govern
+    preparingEmulatorIntervalSeconds: number;
 }

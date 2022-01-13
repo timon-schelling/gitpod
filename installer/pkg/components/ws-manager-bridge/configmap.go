@@ -31,7 +31,8 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 			StoppingPhaseSeconds:             3600,
 			UnknownPhaseSeconds:              600,
 		},
-		StaticBridges: WSManagerList(),
+		PreparingEmulatorIntervalSeconds: 10,
+		StaticBridges:                    WSManagerList(),
 	}
 
 	fc, err := json.MarshalIndent(wsmbcfg, "", " ")

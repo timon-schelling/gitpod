@@ -20,6 +20,7 @@ import { DBPrebuiltWorkspace } from "./entity/db-prebuilt-workspace";
 import { DBPrebuiltWorkspaceUpdatable } from "./entity/db-prebuilt-workspace-updatable";
 import { BUILTIN_WORKSPACE_PROBE_USER_ID } from "../user-db";
 import { DBPrebuildInfo } from "./entity/db-prebuild-info-entry";
+import { FindInstanceOptions } from "..";
 
 type RawTo<T> = (instance: WorkspaceInstance, ws: Workspace) => T;
 interface OrderBy {
@@ -850,6 +851,14 @@ export abstract class AbstractTypeORMWorkspaceDBImpl implements WorkspaceDB {
         delete res["creationTime"];
 
         return <WorkspaceAndInstance>(res);
+    }
+
+    async findInstancesByPhaseAndRegion(phase: string, region: string): Promise<WorkspaceInstance[]> {
+        const repo = await this.getWorkspaceInstanceRepo();
+        const qb = repo.createQueryBuilder("wsi")
+            .where("phasePersisted = :phase", { phase })
+            .andWhere("region = :region", { region });
+        return qb.getMany();
     }
 
     async findPrebuiltWorkspacesByProject(projectId: string, branch?: string, limit?: number): Promise<PrebuiltWorkspace[]> {
