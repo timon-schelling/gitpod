@@ -728,11 +728,19 @@ supervisorLoop:
 
 		ideStopped = make(chan struct{}, 1)
 		cmd = prepareIDELaunch(cfg, ideConfig)
+
 		launchIDE(cfg, ideConfig, cmd, ideStopped, ideReady, &ideStatus, ide)
 
 		select {
 		case <-ideStopped:
 			// IDE was stopped - let's just restart it after a small delay (in case the IDE doesn't start at all) in the next round
+			log.WithField("ide", ide.String()).WithField("code", cmd.ProcessState.ExitCode()).Error("ide stop with code")
+
+			// log.WithField("ide", ide.String()).Info("restart ide after 2min ==========")
+			// time.Sleep(time.Second * 120)
+
+			_ = syscall.Kill(-1*cmd.Process.Pid, syscall.SIGKILL)
+
 			if ideStatus == statusShouldShutdown {
 				break supervisorLoop
 			}
@@ -787,6 +795,7 @@ func launchIDE(cfg *Config, ideConfig *IDEConfig, cmd *exec.Cmd, ideStopped chan
 
 		go func() {
 			IDEStatus := runIDEReadinessProbe(cfg, ideConfig, ide)
+			// --------
 			ideReady.Set(true, IDEStatus)
 		}()
 
