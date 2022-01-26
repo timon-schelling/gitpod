@@ -6,8 +6,8 @@
 
 import * as express from 'express';
 import { postConstruct, injectable, inject } from 'inversify';
-import { UserDB } from '@gitpod/gitpod-db/lib';
-import { User, StartPrebuildResult } from '@gitpod/gitpod-protocol';
+import { ProjectDB, TeamDB, UserDB } from '@gitpod/gitpod-db/lib';
+import { User, StartPrebuildResult, Project } from '@gitpod/gitpod-protocol';
 import { PrebuildManager } from '../prebuilds/prebuild-manager';
 import { TraceContext } from '@gitpod/gitpod-protocol/lib/util/tracing';
 import { TokenService } from '../../../src/user/token-service';
@@ -18,6 +18,8 @@ export class BitbucketApp {
     @inject(UserDB) protected readonly userDB: UserDB;
     @inject(PrebuildManager) protected readonly prebuildManager: PrebuildManager;
     @inject(TokenService) protected readonly tokenService: TokenService;
+    @inject(ProjectDB) protected readonly projectDB: ProjectDB;
+    @inject(TeamDB) protected readonly teamDB: TeamDB;
 
     protected _router = express.Router();
     public static path = '/apps/bitbucket/';
@@ -91,12 +93,35 @@ export class BitbucketApp {
                 return undefined;
             }
 
-            console.log('Starting prebuild.', { contextURL })
-            // todo@alex: add branch and project args
-            const ws = await this.prebuildManager.startPrebuild({ span }, { user, contextURL, cloneURL: data.gitCloneUrl, commit: data.commitHash });
+            console.debug('Bitbucket push event: Starting prebuild.', { contextURL });
+
+            const projectOwner = await this.findProjectOwner(data.gitCloneUrl);
+            const ws = await this.prebuildManager.startPrebuild({ span }, {
+                user: projectOwner?.user || user,
+                project: projectOwner?.project,
+                branch: data.branchName,
+                contextURL,
+                cloneURL: data.gitCloneUrl,
+                commit: data.commitHash
+            });
             return ws;
         } finally {
             span.finish();
+        }
+    }
+
+    protected async findProjectOwner(cloneURL: string): Promise<{ user: User, project?: Project } | undefined> {
+        const project = await this.projectDB.findProjectByCloneUrl(cloneURL);
+        if (project) {
+            const owner = !!project.userId
+                ? { userId: project.userId }
+                : (await this.teamDB.findMembersByTeam(project.teamId || '')).filter(m => m.role === "owner")[0];
+            if (owner) {
+                const user = await this.userDB.findUserById(owner.userId);
+                if (user) {
+                    return { user, project };
+                }
+            }
         }
     }
 
