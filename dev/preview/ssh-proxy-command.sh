@@ -12,11 +12,11 @@ do
     esac
 done
 
-pkill -f "kubectl --context=harvester (.*)${PORT}:22"
+pkill -f "kubectl --context=harvester (.*)${PORT}:2200"
 kubectl \
     --context=harvester \
     --kubeconfig=/home/gitpod/.kube/config \
-    -n "${NAMESPACE}" port-forward service/proxy "${PORT}:22" > /dev/null 2>&1 &
+    -n "${NAMESPACE}" port-forward service/proxy "${PORT}:2200" > /dev/null 2>&1 &
 
 # Wait for the port to be read
 ssh -o BatchMode=yes -p 8022 -o ConnectTimeout=5 ubuntu@localhost echo ok 2>&1
