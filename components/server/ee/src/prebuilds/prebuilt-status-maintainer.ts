@@ -64,6 +64,7 @@ export class PrebuildStatusMaintainer implements Disposable {
                     id: uuidv4(),
                     owner: cri.owner,
                     repo: cri.repo,
+                    commitSHA: cri.head_sha,
                     isResolved: false,
                     installationId: installationId.toString(),
                     contextUrl: cri.details_url,
@@ -139,35 +140,34 @@ export class PrebuildStatusMaintainer implements Disposable {
         }
     }
 
-    protected async doUpdate(ctx: TraceContext, updatatable: PrebuiltWorkspaceUpdatable, pws: PrebuiltWorkspace): Promise<void> {
+    protected async doUpdate(ctx: TraceContext, updatable: PrebuiltWorkspaceUpdatable, pws: PrebuiltWorkspace): Promise<void> {
         const span = TraceContext.startSpan("doUpdate", ctx);
 
         try {
-            const githubApi = await this.getGitHubApi(Number.parseInt(updatatable.installationId));
+            const githubApi = await this.getGitHubApi(Number.parseInt(updatable.installationId));
             if (!githubApi) {
                 log.error("unable to authenticate GitHub app - this leaves user-facing checks dangling.");
                 return;
             }
             const workspace = await this.workspaceDB.trace({span}).findById(pws.buildWorkspaceId);
 
-            if (!!updatatable.contextUrl) {
+            if (!!updatable.contextUrl) {
                 const conclusion = this.getConclusionFromPrebuildState(pws);
 
                 let found = true;
                 try {
                     await githubApi.repos.createCommitStatus({
-                        owner: updatatable.owner,
-                        repo: updatatable.repo,
+                        owner: updatable.owner,
+                        repo: updatable.repo,
                         context: "Gitpod",
-                        sha: pws.commit,
-                        target_url: updatatable.contextUrl,
-                        // at the moment we run in 'evergreen' mode where we always report success for status checks
+                        sha: updatable.commitSHA || pws.commit,
+                        target_url: updatable.contextUrl,
                         description: conclusion == 'success' ? DEFAULT_STATUS_DESCRIPTION : NON_PREBUILT_STATUS_DESCRIPTION,
                         state: (workspace?.config?.github?.prebuilds?.addCheck === 'prevent-merge-on-error' ? conclusion : 'success')
                     });
                 } catch (err) {
                     if (err.message == "Not Found") {
-                        log.info("Did not find repository while updating updatable. Probably we lost the GitHub permission for the repo.", {owner: updatatable.owner, repo: updatatable.repo});
+                        log.info("Did not find repository while updating updatable. Probably we lost the GitHub permission for the repo.", {owner: updatable.owner, repo: updatable.repo});
                         found = true;
                     } else {
                         throw err;
@@ -180,9 +180,9 @@ export class PrebuildStatusMaintainer implements Disposable {
                     },
                 });
 
-                await this.workspaceDB.trace({span}).markUpdatableResolved(updatatable.id);
-                log.info(`Resolved updatable. Marked check on ${updatatable.contextUrl} as ${conclusion}`);
-            } else if (!!updatatable.issue) {
+                await this.workspaceDB.trace({span}).markUpdatableResolved(updatable.id);
+                log.info(`Resolved updatable. Marked check on ${updatable.contextUrl} as ${conclusion}`);
+            } else if (!!updatable.issue) {
                 // this updatatable updates a label
                 log.debug("Update label on a PR - we're not using this yet");
             }
