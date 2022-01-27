@@ -6,7 +6,7 @@
 
 import { PrimaryColumn, Column, Entity, Index } from "typeorm";
 
-import { Workspace, WorkspaceConfig, WorkspaceContext, WorkspaceImageSource, WorkspaceType, WorkspaceSoftDeletion } from "@gitpod/gitpod-protocol";
+import { Workspace, WorkspaceConfig, WorkspaceContext, WorkspaceImageSource, WorkspaceType, WorkspaceSoftDeletion, ImageBuildInfo } from "@gitpod/gitpod-protocol";
 import { TypeORM } from "../typeorm";
 import { Transformer } from "../transformer";
 
@@ -105,4 +105,7 @@ export class DBWorkspace implements Workspace {
     })
     @Index('ind_basedOnSnapshotId')
     basedOnSnapshotId?: string;
+
+    @Column("simple-json", { nullable: true })
+    imageBuildInfo?: ImageBuildInfo;
 }

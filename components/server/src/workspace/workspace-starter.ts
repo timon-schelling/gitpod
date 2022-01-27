@@ -32,8 +32,9 @@ import * as path from 'path';
 import * as grpc from "@grpc/grpc-js";
 import { IDEConfig, IDEConfigService } from "../ide-config";
 import { EnvVarWithValue } from "@gitpod/gitpod-protocol/src/protocol";
-import { WithReferrerContext } from "@gitpod/gitpod-protocol/lib/protocol";
+import { WithReferrerContext, ImageBuildLogInfo } from "@gitpod/gitpod-protocol/lib/protocol";
 import { IDEOption } from "@gitpod/gitpod-protocol/lib/ide-protocol";
+import { Deferred } from "@gitpod/gitpod-protocol/lib/util/deferred";
 
 export interface StartWorkspaceOptions {
     rethrow?: boolean;
@@ -568,7 +569,18 @@ export class WorkspaceStarter {
             req.setAuth(auth);
             req.setForcerebuild(forceRebuild);
 
-            const result = await client.build({ span }, req);
+            // Make sure we persist logInfo as soon as we retrieve it
+            const imageBuildLogInfo = new Deferred<ImageBuildLogInfo>();
+            imageBuildLogInfo.promise.then(async logInfo => {
+                const imageBuildInfo = {
+                    ...(workspace.imageBuildInfo || {}),
+                    log: logInfo,
+                };
+                workspace.imageBuildInfo = imageBuildInfo;  // make sure we're not overriding ourselves again
+                await this.workspaceDb.trace({span}).updatePartial(workspace.id, { imageBuildInfo }).catch(err => log.error("error writing image build log info to the DB", err));
+            }).catch(err => log.warn("image build: never received log info"));
+
+            const result = await client.build({ span }, req, imageBuildLogInfo);
 
             // Update the workspace now that we know what the name of the workspace image will be (which doubles as buildID)
             workspace.imageNameResolved = result.ref;

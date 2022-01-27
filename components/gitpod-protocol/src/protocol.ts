@@ -463,11 +463,28 @@ export interface Workspace {
     basedOnPrebuildId?: string;
 
     basedOnSnapshotId?: string;
+
+    /**
+     * Contains information about the image build, if there was any
+     */
+    imageBuildInfo?: ImageBuildInfo;
 }
 
 export type WorkspaceSoftDeletion = "user" | "gc";
 
 export type WorkspaceType = "regular" | "prebuild" | "probe";
+
+export interface ImageBuildInfo {
+    log?: ImageBuildLogInfo,
+}
+
+/**
+ * Holds information about how to access logs for this an image build
+ */
+export interface ImageBuildLogInfo {
+    url: string,
+    headers: { [key: string]: string },
+}
 
 export namespace Workspace {
 
