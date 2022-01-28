@@ -5,7 +5,7 @@ defaultArgs:
   npmPublishTrigger: "false"
   publishToNPM: true
   localAppVersion: unknown
-  codeCommit: 1ebf82b520556886c85a9f063f04fe23b7f59676
+  codeCommit: 49b44b52e0bce5ab58fcb096ccf7d9495e6cc444
   intellijDownloadUrl: "https://download.jetbrains.com/idea/ideaIU-2021.3.1.tar.gz"
   golandDownloadUrl: "https://download.jetbrains.com/go/goland-2021.3.2.tar.gz"
   pycharmDownloadUrl: "https://download.jetbrains.com/python/pycharm-professional-2021.3.1.tar.gz"
