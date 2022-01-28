@@ -100,6 +100,7 @@ export class EligibilityService {
                     "faculty-check-preview": "true"
                 }
             });
+            // TODO(janx): Log rawResponse.statusText if .status is not 200 or if !.ok?
             const result : GitHubEducationPack = JSON.parse(await rawResponse.text());
             if(result.student && result.faculty) {
                 // That violates the API contract: `student` and `faculty` need to be mutually exclusive
