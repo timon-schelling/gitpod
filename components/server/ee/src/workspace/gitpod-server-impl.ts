@@ -318,7 +318,7 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
         if (!instance) {
             throw new ResponseError(ErrorCodes.NOT_FOUND, `Workspace ${workspaceId} has no running instance`);
         }
-        await this.guardAccess({ kind: "workspaceInstance", subject: instance, workspace}, "get");
+        await this.guardAccess({ kind: "workspaceInstance", subject: instance, workspace }, "get");
 
         const client = await this.workspaceManagerClientProvider.get(instance.region);
         const request = new TakeSnapshotRequest();
@@ -337,13 +337,13 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
             await this.internalDoWaitForWorkspace(waitOpts);
         } else {
             // start driving the snapshot immediately
-            SafePromise.catchAndLog(this.internalDoWaitForWorkspace(waitOpts), { userId: user.id, workspaceId: workspaceId})
+            SafePromise.catchAndLog(this.internalDoWaitForWorkspace(waitOpts), { userId: user.id, workspaceId: workspaceId })
         }
 
         return snapshot.id;
     }
 
-    protected async guardSnaphotAccess(ctx: TraceContext, userId: string, workspaceId: string) : Promise<Workspace> {
+    protected async guardSnaphotAccess(ctx: TraceContext, userId: string, workspaceId: string): Promise<Workspace> {
         traceAPIParams(ctx, { userId, workspaceId });
 
         const workspace = await this.workspaceDb.trace(ctx).findById(workspaceId);
@@ -608,6 +608,12 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
         });
     }
 
+    async adminDeleteProject(ctx: TraceContext, id: string): Promise<void> {
+        this.requireEELicense(Feature.FeatureAdminDashboard);
+        await this.guardAdminAccess("adminDeleteProject", { id }, Permission.ADMIN_PROJECTS);
+        return await this.projectDB.markDeleted(id);
+    }
+
     async adminGetProjectsBySearchTerm(ctx: TraceContext, req: AdminGetListRequest<Project>): Promise<AdminGetListResult<Project>> {
         this.requireEELicense(Feature.FeatureAdminDashboard);
         await this.guardAdminAccess("adminGetProjectsBySearchTerm", { req }, Permission.ADMIN_PROJECTS);
@@ -724,7 +730,7 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
     }
 
     async adminSetLicense(ctx: TraceContext, key: string): Promise<void> {
-        traceAPIParams(ctx, { });   // don't trace the actual key
+        traceAPIParams(ctx, {});   // don't trace the actual key
 
         await this.guardAdminAccess("adminGetWorkspaces", { key }, Permission.ADMIN_API);
 
@@ -1415,7 +1421,7 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
 
     // various
     async sendFeedback(ctx: TraceContext, feedback: string): Promise<string | undefined> {
-        traceAPIParams(ctx, { });   // feedback is not interesting here, any may contain names
+        traceAPIParams(ctx, {});   // feedback is not interesting here, any may contain names
 
         const user = this.checkUser("sendFeedback");
         const now = new Date().toISOString();

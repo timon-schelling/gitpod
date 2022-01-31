@@ -136,6 +136,7 @@ function getConfig(config: RateLimiterConfig): RateLimiterConfig {
         "adminGetWorkspace": { group: "default", points: 1 },
         "adminForceStopWorkspace": { group: "default", points: 1 },
         "adminRestoreSoftDeletedWorkspace": { group: "default", points: 1 },
+        "adminDeleteProject": { group: "default", points: 1 },
         "adminGetProjectsBySearchTerm": { group: "default", points: 1 },
         "adminGetProjectById": { group: "default", points: 1 },
         "adminFindPrebuilds": { group: "default", points: 1 },

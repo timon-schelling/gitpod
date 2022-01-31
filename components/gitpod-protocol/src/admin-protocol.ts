@@ -28,6 +28,7 @@ export interface AdminServer {
     adminForceStopWorkspace(id: string): Promise<void>;
     adminRestoreSoftDeletedWorkspace(id: string): Promise<void>;
 
+    adminDeleteProject(id: string): Promise<void>;
     adminGetProjectsBySearchTerm(req: AdminGetListRequest<Project>): Promise<AdminGetListResult<Project>>;
     adminGetProjectById(id: string): Promise<Project | undefined>;
 

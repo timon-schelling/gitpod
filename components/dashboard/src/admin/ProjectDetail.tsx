@@ -5,18 +5,32 @@
  */
 
 import moment from "moment";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Project } from "@gitpod/gitpod-protocol";
+import { getGitpodService } from "../service/service";
 import Prebuilds from "../projects/Prebuilds"
 import Property from "./Property";
 
 export default function ProjectDetail(props: { project: Project, owner: string | undefined }) {
+    const [deletingProject, setDeleting] = useState(false);
+
+    const deleteProject = async () => {
+        try {
+            setDeleting(true);
+            await getGitpodService().server.adminDeleteProject(props.project.id);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     return <>
         <div className="flex">
             <div className="flex-1">
                 <div className="flex"><h3>{props.project.name}</h3><span className="my-auto ml-3"></span></div>
                 <p>{props.project.cloneUrl}</p>
             </div>
+            <button className="danger ml-3" disabled={deletingProject || props.project.markedDeleted} onClick={deleteProject}>Delete Project</button>
         </div>
         <div className="flex mt-6">
             <div className="flex flex-col w-full">
