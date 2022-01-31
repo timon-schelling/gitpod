@@ -13,9 +13,8 @@ export function StartWorkspaceModal() {
     const { isStartWorkspaceModalVisible, setIsStartWorkspaceModalVisible } = useContext(StartWorkspaceModalContext);
 
     return <Modal onClose={() => setIsStartWorkspaceModalVisible(false)} onEnter={() => false} visible={!!isStartWorkspaceModalVisible}>
-        <h3 className="pb-2">New Workspace</h3>
+        <h3 className="pb-2">Open in Gitpod</h3>
         <div className="border-t border-gray-200 dark:border-gray-800 mt-2 -mx-6 px-6 pt-4">
-            <h4 className="text-base">Search or paste a repository URL</h4>
             <RepositoryFinder />
         </div>
     </Modal>;
