@@ -80,9 +80,11 @@ export default function RepositoryFinder(props: { initialQuery?: string }) {
             <div className="py-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16" width="16" height="16"><path fill="#A8A29E" d="M6 2a4 4 0 100 8 4 4 0 000-8zM0 6a6 6 0 1110.89 3.477l4.817 4.816a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 010 6z" /></svg>
             </div>
-            <input type="search" className="flex-grow" placeholder="Repository" autoFocus value={searchQuery} onChange={e => search(e.target.value)} onKeyDown={onKeyDown} />
+            <input type="search" className="flex-grow" placeholder="repository" autoFocus value={searchQuery} onChange={e => search(e.target.value)} onKeyDown={onKeyDown} />
         </div>
-        <div className="mt-3 flex flex-col space-y-2 h-64 overflow-y-auto" id="search-results">
+        <div className="mt-3 flex flex-col space-y-2 h-64 overflow-y-auto">
+            {searchQuery === '' && searchResults.length === 0 &&
+                <span className="mt-16 mx-auto w-72 text-center text-gray-500">Search for a <strong>personal repository</strong>, a <strong>starter template</strong>, or paste any repository URL above.</span>}
             {searchResults.slice(0, MAX_DISPLAYED_ITEMS).map((result, index) =>
                 <a className={`px-4 py-3 rounded-xl` + (result === selectedSearchResult ? ' bg-gray-600 text-gray-50 dark:bg-gray-700' : '')} href={`/#${result}`} key={`search-result-${index}`} onMouseEnter={() => setSelectedSearchResult(result)}>
                     {searchQuery.length < 2
