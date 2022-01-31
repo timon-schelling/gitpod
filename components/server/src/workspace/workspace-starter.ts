@@ -348,7 +348,8 @@ export class WorkspaceStarter {
                 if (!!desktopIdeChoice) {
                     const mappedImage = ideConfig.ideOptions.options[desktopIdeChoice];
                     if (!!mappedImage && mappedImage.image) {
-                        configuration.desktopIdeImage = mappedImage.image;
+                        const useLatest = !!user.additionalData?.ideSettings?.useLatestVersion;
+                        configuration.desktopIdeImage = useLatest ? (mappedImage.latestImage ?? mappedImage.image) : mappedImage.image
                     } else if (this.authService.hasPermission(user, "ide-settings")) {
                         // if the IDE choice isn't one of the preconfiured choices, we assume its the image name.
                         // For now, this feature requires special permissions.
