@@ -79,27 +79,4 @@ export class DBWorkspaceCluster implements WorkspaceCluster {
         })()
     })
     admissionConstraints?: AdmissionConstraint[];
-
-    @Column({
-        type: "simple-json",
-        transformer: (() => {
-            const defaultValue: AdmissionPreference[] = [];
-            const jsonifiedDefault = JSON.stringify(defaultValue);
-            return <ValueTransformer> {
-                to(value: any): any {
-                    if (!value) {
-                        return jsonifiedDefault;
-                    }
-                    return JSON.stringify(value);
-                },
-                from(value: any): any {
-                    if (!value) {
-                        return undefined;
-                    }
-                    return JSON.parse(value);
-                }
-            };
-        })()
-    })
-    admissionPreferences?: AdmissionPreference[];
 }
